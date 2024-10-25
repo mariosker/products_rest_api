@@ -1,0 +1,27 @@
+version: "3"
+
+tasks:
+  build:
+    cmds:
+      - go build -o bin/server{{if eq OS "windows"}}.exe{{end}} cmd/server/main.go
+    desc: Build the Go binary
+
+  test:
+    cmds:
+      - go test -v -coverpkg=./... ./...
+    desc: Run tests
+
+  run:
+    cmds:
+      - task: build
+      - bin/server{{if eq OS "windows"}}.exe{{end}}
+    desc: Build and run the application
+
+  fmt:
+    cmds:
+      - go fmt ./...
+
+  lint:
+    cmds:
+      - golangci-lint run
+    desc: Run linting tool
