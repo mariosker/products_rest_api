@@ -101,3 +101,19 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 
 	c.JSON(http.StatusOK, product)
 }
+
+func (h *ProductHandler) DeleteProduct(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		return
+	}
+
+	err = h.repo.DeleteProduct(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product with id: " + strconv.Itoa(id)})
+		return
+	}
+
+	c.JSON(http.StatusNoContent, nil)
+}

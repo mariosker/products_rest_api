@@ -37,3 +37,8 @@ func (m *MockProductRepository) UpdateProduct(ctx context.Context, product *mode
 	args := m.Called(ctx, product)
 	return args.Error(0)
 }
+
+func (m *MockProductRepository) DeleteProduct(ctx context.Context, id int) error {
+	args := m.Called(ctx, id)
+	return args.Error(0)
+}
