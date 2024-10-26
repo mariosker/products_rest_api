@@ -25,3 +25,21 @@ tasks:
     cmds:
       - golangci-lint run
     desc: Run linting tool
+
+  migration:
+    cmds:
+      - migrate create -ext psql -dir migrations "{{.ARGS}}"
+    desc: Create a new migration
+    vars:
+      ARGS: ""
+    silent: true
+
+  migrate-up:
+    cmds:
+      - go run cmd/migration/main.go --direction=up
+    desc: Run migrations up
+
+  migrate-down:
+    cmds:
+      - go run cmd/migration/main.go --direction=down
+    desc: Run migrations down
