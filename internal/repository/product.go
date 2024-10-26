@@ -10,6 +10,7 @@ import (
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *models.CreateProductPayload) (int, error)
 	GetProductByID(ctx context.Context, id int) (*models.Product, error)
+	GetProducts(ctx context.Context, limit, offset int) ([]*models.Product, error)
 }
 
 type PostgresProductRepository struct {
@@ -38,4 +39,22 @@ func (r *PostgresProductRepository) GetProductByID(ctx context.Context, id int) 
 		return nil, err
 	}
 	return &product, nil
+}
+
+func (r *PostgresProductRepository) GetProducts(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+	rows, err := r.db.Query(ctx, "SELECT id, name, price FROM products LIMIT $1 OFFSET $2", limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var products []*models.Product
+	for rows.Next() {
+		var product models.Product
+		if err := rows.Scan(&product.ID, &product.Name, &product.Price); err != nil {
+			return nil, err
+		}
+		products = append(products, &product)
+	}
+	return products, nil
 }

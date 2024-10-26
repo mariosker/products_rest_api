@@ -48,3 +48,33 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 
 	c.JSON(http.StatusOK, product)
 }
+
+func (h *ProductHandler) GetProducts(c *gin.Context) {
+	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+		return
+	}
+	if limit <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Limit must be greater than 0"})
+		return
+	}
+
+	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid offset"})
+		return
+	}
+	if offset < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Offset must be greater than or equal to 0"})
+		return
+	}
+
+	products, err := h.repo.GetProducts(c.Request.Context(), limit, offset)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve products"})
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
+}

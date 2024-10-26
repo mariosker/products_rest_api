@@ -24,3 +24,11 @@ func (m *MockProductRepository) GetProductByID(ctx context.Context, id int) (*mo
 	}
 	return nil, args.Error(1)
 }
+
+func (m *MockProductRepository) GetProducts(ctx context.Context, limit, offset int) ([]*models.Product, error) {
+	args := m.Called(ctx, limit, offset)
+	if products, ok := args.Get(0).([]*models.Product); ok {
+		return products, args.Error(1)
+	}
+	return nil, args.Error(1)
+}

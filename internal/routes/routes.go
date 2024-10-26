@@ -8,8 +8,8 @@ import (
 func SetupRoutes(r *gin.Engine, productHandler *handlers.ProductHandler) {
 	r.POST("/products", productHandler.CreateProduct)
 	r.GET("/products/:id", productHandler.GetProduct)
+	r.GET("/products", productHandler.GetProducts)
 	// TODO:
 	// r.PUT("/products/:id", productHandler.UpdateProduct)
 	// r.DELETE("/products/:id", productHandler.DeleteProduct)
-	// r.GET("/products", productHandler.GetProducts)
 }
