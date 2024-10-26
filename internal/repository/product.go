@@ -9,6 +9,7 @@ import (
 
 type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *models.CreateProductPayload) (int, error)
+	GetProductByID(ctx context.Context, id int) (*models.Product, error)
 }
 
 type PostgresProductRepository struct {
@@ -28,4 +29,13 @@ func (r *PostgresProductRepository) CreateProduct(ctx context.Context, product *
 	}
 
 	return id, nil
+}
+
+func (r *PostgresProductRepository) GetProductByID(ctx context.Context, id int) (*models.Product, error) {
+	var product models.Product
+	err := r.db.QueryRow(ctx, "SELECT id, name, price FROM products WHERE id = $1", id).Scan(&product.ID, &product.Name, &product.Price)
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
 }

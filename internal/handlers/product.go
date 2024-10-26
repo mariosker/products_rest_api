@@ -13,7 +13,6 @@ type ProductHandler struct {
 	repo repository.ProductRepository
 }
 
-// NewProductHandler creates a new product handler
 func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{repo: repo}
 }
@@ -32,4 +31,20 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{"id": strconv.Itoa(id)})
+}
+
+func (h *ProductHandler) GetProduct(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		return
+	}
+
+	product, err := h.repo.GetProductByID(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Product with id: " + strconv.Itoa(id) + " not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
 }
