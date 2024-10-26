@@ -11,6 +11,7 @@ type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *models.CreateProductPayload) (int, error)
 	GetProductByID(ctx context.Context, id int) (*models.Product, error)
 	GetProducts(ctx context.Context, limit, offset int) ([]*models.Product, error)
+	UpdateProduct(ctx context.Context, product *models.Product) error
 }
 
 type PostgresProductRepository struct {
@@ -57,4 +58,9 @@ func (r *PostgresProductRepository) GetProducts(ctx context.Context, limit, offs
 		products = append(products, &product)
 	}
 	return products, nil
+}
+
+func (r *PostgresProductRepository) UpdateProduct(ctx context.Context, product *models.Product) error {
+	_, err := r.db.Exec(ctx, "UPDATE products SET name=$1, price=$2 WHERE id=$3", product.Name, product.Price, product.ID)
+	return err
 }

@@ -78,3 +78,26 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 
 	c.JSON(http.StatusOK, products)
 }
+
+func (h *ProductHandler) UpdateProduct(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		return
+	}
+
+	var product models.Product
+	if err := c.ShouldBindJSON(&product); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	product.ID = id
+
+	if err = h.repo.UpdateProduct(c.Request.Context(), &product); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product with id: " + strconv.Itoa(id)})
+		return
+	}
+
+	c.JSON(http.StatusOK, product)
+}

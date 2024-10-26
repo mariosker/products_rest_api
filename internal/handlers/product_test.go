@@ -32,3 +32,8 @@ func (m *MockProductRepository) GetProducts(ctx context.Context, limit, offset i
 	}
 	return nil, args.Error(1)
 }
+
+func (m *MockProductRepository) UpdateProduct(ctx context.Context, product *models.Product) error {
+	args := m.Called(ctx, product)
+	return args.Error(0)
+}
