@@ -80,8 +80,10 @@ Below are examples of available endpoints:
 The Create, Update commands want a JSON in the form of:
 
 ```json
-"name": "Example",
-"price": 100
+{
+  "name": "Example",
+  "price": 100
+}
 ```
 
 ## Next on the List
