@@ -94,3 +94,4 @@ The Create, Update commands want a JSON in the form of:
 - [ ] Implement logging and monitoring for the API.
 - [ ] Consider adding a caching layer (e.g., Redis) for frequently accessed data.
 - [ ] Implement rate limiting to prevent abuse of the API.
+- [ ] Implement multi-stage Dockerfile.
