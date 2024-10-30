@@ -45,8 +45,8 @@ func (m *MockProductRepository) GetProducts(ctx context.Context, limit, offset i
 
 // UpdateProduct mocks the update of a product in the repository.
 // It takes a context and a Product, and returns an error if any.
-func (m *MockProductRepository) UpdateProduct(ctx context.Context, product *models.Product) error {
-	args := m.Called(ctx, product)
+func (m *MockProductRepository) UpdateProduct(ctx context.Context, id int, payload *models.UpdateProductPayload) error {
+	args := m.Called(ctx, id, payload)
 	return args.Error(0)
 }
 

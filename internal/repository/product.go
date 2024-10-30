@@ -12,7 +12,7 @@ type ProductRepository interface {
 	CreateProduct(ctx context.Context, product *models.CreateProductPayload) (int, error)
 	GetProductByID(ctx context.Context, id int) (*models.Product, error)
 	GetProducts(ctx context.Context, limit, offset int) ([]*models.Product, error)
-	UpdateProduct(ctx context.Context, product *models.Product) error
+	UpdateProduct(ctx context.Context, id int, payload *models.UpdateProductPayload) error
 	DeleteProduct(ctx context.Context, id int) error
 }
 
@@ -78,15 +78,16 @@ func (r *PostgresProductRepository) GetProducts(ctx context.Context, limit, offs
 // UpdateProduct updates an existing product in the database.
 // Parameters:
 // - ctx: context for managing request deadlines and cancellation signals.
-// - product: the product data to be updated.
-func (r *PostgresProductRepository) UpdateProduct(ctx context.Context, product *models.Product) error {
-	result, err := r.dbConnection.Exec(ctx, "UPDATE products SET name=$1, price=$2 WHERE id=$3", product.Name, product.Price, product.ID)
+// - id: the ID of the product to be updated.
+// - payload: the product data to be updated.
+func (r *PostgresProductRepository) UpdateProduct(ctx context.Context, id int, payload *models.UpdateProductPayload) error {
+	result, err := r.dbConnection.Exec(ctx, "UPDATE products SET name=$1, price=$2 WHERE id=$3", payload.Name, payload.Price, id)
 	if err != nil {
 		return err
 	}
 
 	if result.RowsAffected() == 0 {
-		return fmt.Errorf("product with ID %d not found", product.ID)
+		return fmt.Errorf("product with ID %d not found", id)
 	}
 
 	return nil

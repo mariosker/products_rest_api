@@ -94,15 +94,13 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	var product models.Product
-	if err := c.ShouldBindJSON(&product); err != nil {
+	var payload models.UpdateProductPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	product.ID = id
-
-	err = h.repo.UpdateProduct(c.Request.Context(), &product)
+	err = h.repo.UpdateProduct(c.Request.Context(), id, &payload)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("product with ID %d not found", id) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
@@ -112,7 +110,7 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, product)
+	c.JSON(http.StatusOK, gin.H{"id": id, "name": payload.Name, "price": payload.Price})
 }
 
 // DeleteProduct handles the deletion of a product by its ID.

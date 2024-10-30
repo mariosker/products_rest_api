@@ -24,7 +24,7 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 
 	t.Run("Product Not Found", func(t *testing.T) {
 		var errRepo = errors.New("product with ID 3 not found")
-		mockRepo.On("UpdateProduct", mock.Anything, mock.Anything).Return(errRepo).Times(1)
+		mockRepo.On("UpdateProduct", mock.Anything, 3, mock.Anything).Return(errRepo).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/products/3", strings.NewReader(`{"name":"Updated Product","price":15.0}`))
@@ -50,8 +50,8 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 	})
 
 	t.Run("Success", func(t *testing.T) {
-		product := &models.Product{ID: 3, Name: "Updated Product", Price: 15.0}
-		mockRepo.On("UpdateProduct", mock.Anything, product).Return(nil).Times(1)
+		payload := &models.UpdateProductPayload{Name: "Updated Product", Price: 15.0}
+		mockRepo.On("UpdateProduct", mock.Anything, 3, payload).Return(nil).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/products/3", strings.NewReader(`{"name":"Updated Product","price":15.0}`))
