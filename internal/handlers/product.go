@@ -83,6 +83,10 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 		return
 	}
 
+	if products == nil {
+		products = []*models.Product{}
+	}
+
 	c.JSON(http.StatusOK, products)
 }
 
