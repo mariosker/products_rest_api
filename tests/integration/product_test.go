@@ -143,7 +143,7 @@ func TestCreateProduct(t *testing.T) {
 		assert.Equal(t, http.StatusCreated, w.Code)
 	})
 
-	t.Run("Negative Proce", func(t *testing.T) {
+	t.Run("Negative Price", func(t *testing.T) {
 		body := `{"name": "Test Product", "price": -20.0}`
 		req, _ := http.NewRequest("POST", "/products", strings.NewReader(body))
 		req.Header.Set("Content-Type", "application/json")
@@ -221,12 +221,12 @@ func TestUpdateProduct(t *testing.T) {
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("Only price in JSON", func(t *testing.T) {
 		body := `{"price": 25.0}`
-		req, _ := http.NewRequest("PUT", "/products/3", strings.NewReader(body))
+		req, _ := http.NewRequest("PUT", fmt.Sprintf("/products/%d", productID), strings.NewReader(body))
 		w := httptest.NewRecorder()
 		router.ServeHTTP(w, req)
 
@@ -262,16 +262,6 @@ func TestGetProducts(t *testing.T) {
 
 	_, _ = insertTestProduct("Product 1", 10.0)
 	_, _ = insertTestProduct("Product 2", 20.0)
-
-	t.Run("Get Products with Limit and Offset", func(t *testing.T) {
-		req, _ := http.NewRequest("GET", "/products?limit=1&offset=1", nil)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), `"name":"Product 2"`)
-		assert.NotContains(t, w.Body.String(), `"name":"Product 1"`)
-	})
 
 	t.Run("Get Products with Limit and Offset", func(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/products?limit=1&offset=1", nil)
