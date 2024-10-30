@@ -23,15 +23,14 @@ func TestProductHandler_UpdateProduct(t *testing.T) {
 	router.PUT("/products/:id", handler.UpdateProduct)
 
 	t.Run("Product Not Found", func(t *testing.T) {
-		var errRepo = errors.New("product not found")
+		var errRepo = errors.New("product with ID 3 not found")
 		mockRepo.On("UpdateProduct", mock.Anything, mock.Anything).Return(errRepo).Times(1)
 
 		w := httptest.NewRecorder()
 		req, _ := http.NewRequest("PUT", "/products/3", strings.NewReader(`{"name":"Updated Product","price":15.0}`))
 		router.ServeHTTP(w, req)
 
-		assert.Equal(t, http.StatusInternalServerError, w.Code)
-		assert.Contains(t, w.Body.String(), "Failed to update product")
+		assert.Equal(t, http.StatusNotFound, w.Code)
 	})
 
 	t.Run("Invalid ID", func(t *testing.T) {

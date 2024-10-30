@@ -1,6 +1,8 @@
+// Package handlers provides HTTP handlers for managing products.
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,14 +11,17 @@ import (
 	"github.com/mariosker/products_rest_api/internal/repository"
 )
 
+// ProductHandler handles HTTP requests for managing products.
 type ProductHandler struct {
 	repo repository.ProductRepository
 }
 
+// NewProductHandler creates a new ProductHandler with the given repository.
 func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{repo: repo}
 }
 
+// CreateProduct handles the creation of a new product.
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product models.CreateProductPayload
 	if err := c.ShouldBindJSON(&product); err != nil {
@@ -33,6 +38,7 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"id": strconv.Itoa(id)})
 }
 
+// GetProduct handles the HTTP GET request to retrieve a product by its ID.
 func (h *ProductHandler) GetProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -49,6 +55,7 @@ func (h *ProductHandler) GetProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, product)
 }
 
+// GetProducts handles the HTTP GET request to retrieve a list of products with pagination.
 func (h *ProductHandler) GetProducts(c *gin.Context) {
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
@@ -79,6 +86,7 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
+// UpdateProduct handles the HTTP PUT request to update an existing product by its ID.
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -94,26 +102,32 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 
 	product.ID = id
 
-	if err = h.repo.UpdateProduct(c.Request.Context(), &product); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product with id: " + strconv.Itoa(id)})
+	err = h.repo.UpdateProduct(c.Request.Context(), &product)
+	if err != nil {
+		if err.Error() == fmt.Sprintf("product with ID %d not found", id) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product with ID: " + strconv.Itoa(id)})
+		}
 		return
 	}
 
 	c.JSON(http.StatusOK, product)
 }
 
+// DeleteProduct handles the deletion of a product by its ID.
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+	id, parseErr := strconv.Atoi(c.Param("id"))
+	if parseErr != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
 		return
 	}
 
-	err = h.repo.DeleteProduct(c.Request.Context(), id)
-	if err != nil {
+	deleteErr := h.repo.DeleteProduct(c.Request.Context(), id)
+	if deleteErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product with id: " + strconv.Itoa(id)})
 		return
 	}
 
-	c.JSON(http.StatusNoContent, nil)
+	c.JSON(http.StatusNoContent, gin.H{})
 }
