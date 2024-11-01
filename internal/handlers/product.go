@@ -9,6 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/mariosker/products_rest_api/internal/models"
 	"github.com/mariosker/products_rest_api/internal/repository"
+	"github.com/mariosker/products_rest_api/internal/utils"
 )
 
 // ProductHandler handles HTTP requests for managing products.
@@ -21,65 +22,96 @@ func NewProductHandler(repo repository.ProductRepository) *ProductHandler {
 	return &ProductHandler{repo: repo}
 }
 
-// CreateProduct handles the creation of a new product.
+// CreateProduct godoc
+// @Summary Create a new product
+// @Description Create a new product with the input payload
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param product body models.CreateProductPayload true "Product Payload"
+// @Success 201 {object} models.CreateProductResponse
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products [post]
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product models.CreateProductPayload
 	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	id, repoErr := h.repo.CreateProduct(c.Request.Context(), &product)
 	if repoErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create product"})
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to create product")
 		return
 	}
-
-	c.JSON(http.StatusCreated, gin.H{"id": strconv.Itoa(id)})
+	response := models.CreateProductResponse{ID: id}
+	c.JSON(http.StatusCreated, response)
 }
 
-// GetProduct handles the HTTP GET request to retrieve a product by its ID.
+// GetProduct godoc
+// @Summary Get a product by ID
+// @Description Retrieve a product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 200 {object} models.Product
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Router /products/{id} [get]
 func (h *ProductHandler) GetProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid ID: "+c.Param("id"))
 		return
 	}
 
 	product, err := h.repo.GetProductByID(c.Request.Context(), id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Product with id: " + strconv.Itoa(id) + " not found"})
+		utils.SendErrorResponse(c, http.StatusNotFound, "Product with id: "+strconv.Itoa(id)+" not found")
 		return
 	}
 
 	c.JSON(http.StatusOK, product)
 }
 
-// GetProducts handles the HTTP GET request to retrieve a list of products with pagination.
+// GetProducts godoc
+// @Summary Get a list of products
+// @Description Retrieve a list of products with pagination
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param limit query int false "Limit"
+// @Param offset query int false "Offset"
+// @Success 200 {array} models.Product
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products [get]
 func (h *ProductHandler) GetProducts(c *gin.Context) {
 	limit, err := strconv.Atoi(c.DefaultQuery("limit", "10"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid limit")
 		return
 	}
 	if limit <= 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Limit must be greater than 0"})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Limit must be greater than 0")
 		return
 	}
 
 	offset, err := strconv.Atoi(c.DefaultQuery("offset", "0"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid offset"})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid offset")
 		return
 	}
 	if offset < 0 {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Offset must be greater than or equal to 0"})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Offset must be greater than or equal to 0")
 		return
 	}
 
 	products, err := h.repo.GetProducts(c.Request.Context(), limit, offset)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve products"})
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve products")
 		return
 	}
 
@@ -90,46 +122,68 @@ func (h *ProductHandler) GetProducts(c *gin.Context) {
 	c.JSON(http.StatusOK, products)
 }
 
-// UpdateProduct handles the HTTP PUT request to update an existing product by its ID.
+// UpdateProduct godoc
+// @Summary Update a product by ID
+// @Description Update an existing product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Param product body models.UpdateProductPayload true "Product Payload"
+// @Success 200 {object} models.Product
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 404 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products/{id} [put]
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid ID: "+c.Param("id"))
 		return
 	}
 
 	var payload models.UpdateProductPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.SendErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	err = h.repo.UpdateProduct(c.Request.Context(), id, &payload)
 	if err != nil {
 		if err.Error() == fmt.Sprintf("product with ID %d not found", id) {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
+			utils.SendErrorResponse(c, http.StatusNotFound, "Product not found")
 		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product with ID: " + strconv.Itoa(id)})
+			utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to update product with ID: "+strconv.Itoa(id))
 		}
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"id": id, "name": payload.Name, "price": payload.Price})
+	product := models.Product{ID: id, Name: payload.Name, Price: payload.Price}
+	c.JSON(http.StatusOK, product)
 }
 
-// DeleteProduct handles the deletion of a product by its ID.
+// DeleteProduct godoc
+// @Summary Delete a product by ID
+// @Description Delete a product by its ID
+// @Tags products
+// @Accept json
+// @Produce json
+// @Param id path int true "Product ID"
+// @Success 204 {} {}
+// @Failure 400 {object} utils.ErrorResponse
+// @Failure 500 {object} utils.ErrorResponse
+// @Router /products/{id} [delete]
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
 	id, parseErr := strconv.Atoi(c.Param("id"))
 	if parseErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID: " + c.Param("id")})
+		utils.SendErrorResponse(c, http.StatusBadRequest, "Invalid ID: "+c.Param("id"))
 		return
 	}
 
 	deleteErr := h.repo.DeleteProduct(c.Request.Context(), id)
 	if deleteErr != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete product with id: " + strconv.Itoa(id)})
+		utils.SendErrorResponse(c, http.StatusInternalServerError, "Failed to delete product with id: "+strconv.Itoa(id))
 		return
 	}
 
-	c.JSON(http.StatusNoContent, gin.H{})
+	c.Status(http.StatusNoContent)
 }

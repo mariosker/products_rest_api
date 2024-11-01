@@ -11,13 +11,21 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq"
+	_ "github.com/mariosker/products_rest_api/docs"
 	"github.com/mariosker/products_rest_api/internal/config"
 	"github.com/mariosker/products_rest_api/internal/database"
 	"github.com/mariosker/products_rest_api/internal/handlers"
 	"github.com/mariosker/products_rest_api/internal/repository"
 	"github.com/mariosker/products_rest_api/internal/routes"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title Product API
+// @version 1.0
+// @description This is a sample server for a Product API.
+// @BasePath /
 func main() {
 	// Load configuration
 	cfg, err := config.LoadConfig()
@@ -44,7 +52,7 @@ func main() {
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
-
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "OK"})
 	})
@@ -52,6 +60,7 @@ func main() {
 	routes.SetupRoutes(r, productHandler)
 
 	serverAddr := cfg.ServerHost + ":" + cfg.ServerPort
+
 	if err := r.Run(serverAddr); err != nil {
 		log.Fatal("Failed to run server:", err)
 	}

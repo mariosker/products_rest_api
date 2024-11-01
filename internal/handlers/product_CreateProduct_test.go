@@ -30,7 +30,7 @@ func TestProductHandler_CreateProduct(t *testing.T) {
 		router.ServeHTTP(w, req)
 
 		assert.Equal(t, http.StatusCreated, w.Code)
-		assert.Contains(t, w.Body.String(), `"id":"1"`)
+		assert.Contains(t, w.Body.String(), `{"id":1}`)
 	})
 
 	t.Run("Invalid JSON", func(t *testing.T) {
